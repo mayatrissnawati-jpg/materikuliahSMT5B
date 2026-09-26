@@ -1,14 +1,11 @@
 // Import Library
-import React, { useState} from 'react';
+import React, { useState, useRef, useEffect } from "react";
 
-//Import Component
+// Import Components
 import {
   View,
   Text,
-  Image,
   ScrollView,
-  FlatList,
-  SectionList,
   TextInput,
   Button,
   TouchableOpacity,
@@ -17,11 +14,13 @@ import {
   Modal,
   SafeAreaViewBase,
   ActivityIndicator,
-  StatusBar, 
+  StatusBar,
   StyleSheet,
   Alert,
   Platform,
-} from 'react-native';
+  KeyboardAvoidingView,
+  Animated
+} from "react-native";
 
 // Import SafeAreaView
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -37,12 +36,15 @@ const PROFILE = {
 };
 
 const SKILLS = [
-  { id: '1', name: 'React Native', level: 90, color: '#61dafb' },
+  { id: '1', name: 'React Native', level: 90, color: '#61DAFB' },
   { id: '2', name: 'Flutter', level: 75, color: '#02569B' },
-  { id: '3', name: 'JavaScript', level: 88, color: '#f7df1e' },
-  { id: '4', name: 'TypeScript', level: 80, color: '#3178c6' },
+  { id: '3', name: 'JavaScript', level: 88, color: '#217d57' },
+  { id: '4', name: 'TypeScript', level: 80, color: '#3178C6' },
   { id: '5', name: 'Node.js', level: 70, color: '#339933' },
-  { id: '6', name: 'Firebase', level: 82, color: '#306998' },
+  { id: '6', name: 'Firebase', level: 82, color: '#044f45' },
+  { id: '7', name: 'HTML & CSS', level: 85, color: '#325ab7' },
+  { id: '8', name: 'SQL / MySQL', level: 75, color: '#4479a1' },
+  { id: '9', name: 'PHP', level: 75, color: '#777bb4' },
 ];
 
 const SECTIONS = [
@@ -51,235 +53,272 @@ const SECTIONS = [
     data: [
       {
         id: 'e1',
-        role: 'Frontend Developer',
-        company: 'PT. Elang Nusantara',
-        period: '2027 - sekarang',
-        description: 'Mengembangkan aplikasi mobile menggunakan React Native dan Flutter.',
+        role: 'Guru PAUD',
+        company: 'Nurul Faqih',
+        period: '2026 – Sekarang',
+        desc: 'Mengajar dan mendampingi anak-anak dalam proses pembelajaran serta membantu mengembangkan kemampuan dan kreativitas mereka.',
       },
       {
-        id: 'e2',
-        role: 'Backend Developer',
-        company: 'PT. Tech Solutions',
-        period: '2020 - 2025',
-        description: 'Mengembangkan API dan layanan backend menggunakan Node.js dan Express.',
-      },
-    ],
-  },
-  {
-    title: '🎓 Pendidikan',
-    data: [
-      {
-        id: 'd1',
-        role: 'S1 Informatika',
-        company: 'Universitas Islam Negeri Siber Syekh Nurjati Cirebon',
-        period: '2024 - 2029',
-        description: 'Jurusan Informatika',
-      },
+      id: 'e2',
+      role: 'Volunteer',
+      company: 'Ikmawati Bandung',
+      period: '2026 – 2026',
+      desc: 'Berpartisipasi dalam kegiatan sosial dan membantu pelaksanaan berbagai kegiatan yang diselenggarakan oleh Ikmawati Bandung.',
+    },
+  ],
+},
+{
+  title: '🎓 Pendidikan',
+  data: [
+    {
+      id: 'd1',
+      role: 'S1 Informatika',
+      company: 'Universitas Islam Negeri Siber Syekh Nurjati Cirebon',
+      period: '2024 – 2029',
+      desc: 'Mempelajari bidang informatika, termasuk pemrograman, pengembangan aplikasi, analisis sistem, dan teknologi informasi.',
+    },
+    {
+      id: 'd2',
+      role: 'Agama',
+      company: 'MAS Tihamah Putri',
+      period: '2020 – 2024',
+      desc: 'Menempuh pendidikan menengah dengan fokus pada pendidikan agama serta pembelajaran umum.',
+    },
     ],
   },
 ];
 
 const SOCIAL = [
-  { id: 's1', label: 'Github', icon: '👾', url: 'https://github.com/mayatrissnawati-jpg' },
-  { id: 's2', label: 'LinkedIn', icon: '🔗', url: 'https://www.linkedin.com/in/maya-trisnawati-1a0b3b1b9/' },
-  { id: 's3', label: 'Portfolio', icon: '📷', url: 'https://www.instagram.com/mayatrissnawati/' }
+  { id: 's1', label: 'GitHub', icon: '🐙', url: 'https://github.com/mayatrissnawati-jpg' },
+  { id: 's2', label: 'WhatsApp', icon: '💼', url: 'https://wa.me/qr/KY7AYQBF3PEXO1' },
+  { id: 's3', label: 'Instagram', icon: '🌐', url: 'https://www.instagram.com/trsnaa10?stkn=MW9leHRldjlub2V3ZQ==' },
 ];
 
-const skillCard = ({item}) => (
+const SkillCard = ({ item }) => (
   <View style={styles.skillCard}>
-    <View style={styles.skillCardHeader}>
-    <Text style={styles.skillName}>{item.name}</Text>
-    <Text style={styles.skillPercent}>{item.level}%</Text>
+    <View style={styles.skillHeader}>
+      <Text style={styles.skillName}>{item.name}</Text>
+      <Text style={styles.skillPercent}>{item.level}%</Text>
     </View>
-
     <View style={styles.progressBg}>
-      <View 
+      <View
         style={[
-          styles.progressFill, 
-          { width: `${item.level}%`, backgroundColor: item.color
-    },  ]} 
+          styles.progressFill,
+          { width: `${item.level}%`, backgroundColor: item.color }
+        ]}
       />
     </View>
   </View>
 );
 
-const TimelineCard = ({item, onPress}) => (
-  <TouchableOpacity 
+const TimelineCard = ({ item, onPress }) => (
+  <TouchableOpacity
     style={styles.timelineCard}
     onPress={() => onPress(item)}
     activeOpacity={0.75}
   >
-    <View style={styles.timelineDot} /> 
-
+    <View style={styles.timelineDot} />
     <View style={styles.timelineContent}>
       <Text style={styles.timelineRole}>{item.role}</Text>
       <Text style={styles.timelineCompany}>{item.company}</Text>
       <Text style={styles.timelinePeriod}>{item.period}</Text>
-      <Text style={styles.timelineHint}>Ketuk untuk detail</Text>
+      <Text style={styles.timelineHint}>Ketuk untuk detail →</Text>
     </View>
   </TouchableOpacity>
 );
 
-  export default function App() {
-    const [openTowork, setOpenToWork] = useState(true);
-    const [selectedItem, setSelectedItem] = useState(null);
-    const [modalVisible, setModalVisible] = useState(false);
-    const [senderName, setSenderName] = useState('');
-    const [message, setMessage]       = useState('');
-    const [sending, setSending] = useState(false);
-    const [pressing, setPressing] = useState(false);
+export default function App() {
+  const [openToWork, setOpenToWork] = useState(true);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [senderName, setSenderName] = useState('');
+  const [message, setMessage] = useState('');
+  const [sending, setSending] = useState(false);
+  const [pressing, setPressing] = useState(false);
 
-    const handleTimelinePress = (item) => {
-      setSelectedItem(item);
-      setModalVisible(true);
-    };
-    
-    const handleSend = () => {
-      if (!senderName.trim() || !message.trim()) {
-        Alert.alert('⚠️ Peringatan', 'Nama dan pesan tidak boleh kosong');
-        return;
-      }
-      setSending(true);
+  // Tab State: 'Info' | 'Skills' | 'Kontak'
+  const [activeTab, setActiveTab] = useState('Info');
 
-      setTimeout(() => {
-        setSending(false);
-        setSenderName('');
-        setMessage('');
-        Alert.alert('✅ Berhasil', `Pesan ${senderName} telah berhasil terkirim!`);
-      }, 2000);
-    };
+  // Animated API untuk Profile Avatar
+  const scaleAnim = useRef(new Animated.Value(1)).current;
 
-    return (
-      <SafeAreaView style={styles.safeArea}>
-        {
-      }<StatusBar 
-          backgroundColor="#61dafb" 
-          barStyle="light-content" 
-        />
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(scaleAnim, {
+          toValue: 1.08,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 1,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, [scaleAnim]);
 
-        {/* HEADER BAR */}
-        <View style={styles.headerBar}>
-          <Text style={styles.headerTitle}>📄 Curriculum Vitae</Text>
-          
-          {                            }
-          <View style={styles.switchRow}>
-            <Text style={styles.switchLabel}>
-              {openTowork ? '🟢' : '🔴 Busy'}
-            </Text>
-            {                            }
-            <Switch
-              value={openTowork}
-              onValueChange={setOpenToWork}
-              trackColor={{ false: '#767577', true: '#81b0ff' }}
-              thumbColor={openTowork ? '#f5dd4b' : '#f4f3f4'}
-            />
-          </View>
+  const handleCardPress = (item) => {
+    setSelectedItem(item);
+    setModalVisible(true);
+  };
+
+  const handleSend = () => {
+    if (!senderName.trim() || !message.trim()) {
+      Alert.alert('⚠️ Peringatan', 'Nama dan pesan tidak boleh kosong!');
+      return;
+    }
+    setSending(true);
+
+    setTimeout(() => {
+      setSending(false);
+      setSenderName('');
+      setMessage('');
+      Alert.alert('✅ Berhasil', `Pesan dari ${senderName} telah terkirim!`);
+    }, 2000);
+  };
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar backgroundColor="#1a1a2e" barStyle="light-content" />
+
+      {/* HEADER BAR */}
+      <View style={styles.headerBar}>
+        <Text style={styles.headerTitle}>📄 Curriculum Vitae</Text>
+        <View style={styles.switchRow}>
+          <Text style={styles.switchLabel}>
+            {openToWork ? '🟢 Open' : '🔴 Busy'}
+          </Text>
+          <Switch
+            value={openToWork}
+            onValueChange={setOpenToWork}
+            trackColor={{ false: '#555', true: '#4ade80' }}
+            thumbColor={openToWork ? '#fff' : '#aaa'}
+          />
         </View>
-        
+      </View>
 
-    <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
-        {/* PROFIL SECTION */}
-        <View style={styles.profileSection}>
-          <Image
-              source={require("./assets/foto.jpeg")}
-              style={styles.avatar}
-            />
-            {                                             }
-            {openTowork && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>✅ Open to Work</Text>
-              </View>
-            )}
-            {                                             }
-            <Text style={styles.profileName}>{PROFILE.name}</Text>
-            <Text style={styles.profileTitle}>{PROFILE.title}</Text>
-            <Text style={styles.profileBio}>{PROFILE.bio}</Text>
-
-            {                                             }
-            <View style={styles.contactRow}>
-              <Text style={styles.contactItem}>📧 {PROFILE.email}</Text>
-              <Text style={styles.contactItem}>📍{PROFILE.location}</Text>
-            </View>
-            <Text style={styles.contactItem}>📞 {PROFILE.phone}</Text>
-
-            {                                            }
-            <View style={styles.socialRow}>
-              {SOCIAL.map((s) => (
-                <TouchableOpacity
-                  key={s.id}
-                  style={styles.socialBtn}
-                  onPress={() => Alert.alert('🔗 Link', s.url)}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.socialIcon}>{s.icon}</Text>
-                  <Text style={styles.socialLabel}>{s.label}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {                                             }
-            <Pressable
-
-              style={({ pressed }) => [
-                styles.downloadBtn,
-                pressed && styles.downloadBtnPressed,
-              ]}
-              onPressIn={() => setPressing(true)}
-              onPressOut={() => setPressing(false)}
-              onPress={() => Alert.alert('📥 Download', 'CV sedang diunduh...')}
-            >
-              <Text style={styles.downloadBtnText}>
-                {pressing ? '📥 Mengunduh...' : '📥 Download CV (PDF)'}
-              </Text>
-            </Pressable>
-          </View>
-
-          {                                           }
-          <View style={{height: 40}} />
-
-          <View style={styles.sectionBox}>
-            <Text style={styles.sectionTitle}>🛠️ Keahlian</Text>
-            <Text style={styles.sectionSubtitle}>
-              FlatList: menampilkan list data secara efisien
+      {/* TAB NAVIGATION */}
+      <View style={styles.tabContainer}>
+        {['Info', 'Skills', 'Kontak'].map((tab) => (
+          <TouchableOpacity
+            key={tab}
+            style={[styles.tabButton, activeTab === tab && styles.activeTabButton]}
+            onPress={() => setActiveTab(tab)}
+            activeOpacity={0.8}
+          >
+            <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
+              {tab}
             </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
 
-            {                             }
-            <FlatList
-              data={SKILLS}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (<skillCard item={item} />)}
-              scrollEnabled={false}
-              ItemSeparatorComponent={() => (
-                <View style={{height: 8}} />
-              )}
-            />
-            </View>
-            <View style={styles.sectionBox}>
-              <Text style={styles.sectionTitle}>📜 Riwayat</Text>
-              <Text style={styles.sectionSubtitle}>
-                SectionList: data dikelompokkan per kategori. ketuk kartu untuk Modal detal.
-              </Text>
-              <SectionList
-                sections={SECTIONS}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                  <TimelineCard item={item} onPress={handleTimelinePress} />
-                )}
-                renderSectionHeader={({ section: { title } }) => (
-                  <View style={styles.sectionHeader}>
-                    <Text style={styles.sectionHeaderText}>{title}</Text>
+      {/* KEYBOARD AVOIDING VIEW */}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
+          {/* TAB 1: INFO PROFIL & RIWAYAT */}
+          {activeTab === 'Info' && (
+            <>
+              <View style={styles.profileSection}>
+                <Animated.Image
+                  source={require("./assets/foto.jpeg")}
+                  style={[styles.avatar, { transform: [{ scale: scaleAnim }] }]}
+                />
+
+                {openToWork && (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>✅ Open to Work</Text>
                   </View>
                 )}
-                scrollEnabled={false}
-                ItemSeparatorComponent={() => (<View style={{height: 10}} />)}
-                sectionSeparatorComponent={() => (<View style={{height: 16}} />)}
-              />
-            </View>
 
+                <Text style={styles.profileName}>{PROFILE.name}</Text>
+                <Text style={styles.profileTitle}>{PROFILE.title}</Text>
+                <Text style={styles.profileBio}>{PROFILE.bio}</Text>
+
+                <View style={styles.contactRow}>
+                  <Text style={styles.contactItem}>📧 {PROFILE.email}</Text>
+                  <Text style={styles.contactItem}>📍 {PROFILE.location}</Text>
+                </View>
+                <Text style={styles.contactItem}>📱 {PROFILE.phone}</Text>
+
+                <View style={styles.socialRow}>
+                  {SOCIAL.map((s) => (
+                    <TouchableOpacity
+                      key={s.id}
+                      style={styles.socialBtn}
+                      onPress={() => Alert.alert('🔗 Link', s.url)}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.socialIcon}>{s.icon}</Text>
+                      <Text style={styles.socialLabel}>{s.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.downloadBtn,
+                    pressed && styles.downloadBtnPressed,
+                  ]}
+                  onPressIn={() => setPressing(true)}
+                  onPressOut={() => setPressing(false)}
+                  onPress={() => Alert.alert('⬇️ Download', 'CV sedang diunduh...')}
+                >
+                  <Text style={styles.downloadBtnText}>
+                    {pressing ? '⏳ Mengunduh...' : '⬇️ Download CV (PDF)'}
+                  </Text>
+                </Pressable>
+              </View>
+
+              <View style={styles.sectionBox}>
+                <Text style={styles.sectionTitle}>📋 Riwayat</Text>
+                <Text style={styles.sectionSubtitle}>
+                  ↳ Ketuk kartu untuk detail modal
+                </Text>
+                
+                {SECTIONS.map((section, sectionIdx) => (
+                  <View key={sectionIdx} style={{ marginBottom: 16 }}>
+                    <View style={styles.sectionHeader}>
+                      <Text style={styles.sectionHeaderText}>{section.title}</Text>
+                    </View>
+                    {section.data.map((item) => (
+                      <View key={item.id} style={{ marginBottom: 10 }}>
+                        <TimelineCard item={item} onPress={handleCardPress} />
+                      </View>
+                    ))}
+                  </View>
+                ))}
+              </View>
+            </>
+          )}
+
+          {/* TAB 2: SKILLS */}
+          {activeTab === 'Skills' && (
+            <View style={styles.sectionBox}>
+              <Text style={styles.sectionTitle}>🛠️ Keahlian & Keterampilan</Text>
+              <Text style={styles.sectionSubtitle}>
+                ↳ Tingkat kemahiran dalam bidang pemrograman
+              </Text>
+              
+              {SKILLS.map((item) => (
+                <View key={item.id} style={{ marginBottom: 8 }}>
+                  <SkillCard item={item} />
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* TAB 3: KONTAK FORM */}
+          {activeTab === 'Kontak' && (
             <View style={styles.sectionBox}>
               <Text style={styles.sectionTitle}>✉️ Hubungi Saya</Text>
               <Text style={styles.sectionSubtitle}>
-                TextInput, Button, ActivityIndicator
+                ↳ Kirim pesan langsung ke email profil
               </Text>
 
               <TextInput
@@ -306,18 +345,25 @@ const TimelineCard = ({item, onPress}) => (
 
               {sending ? (
                 <View style={styles.loadingRow}>
-                  <ActivityIndicator size="large" color="#61dafb" />
+                  <ActivityIndicator size="large" color="#7c3aed" />
                   <Text style={styles.loadingText}>Mengirim pesan...</Text>
                 </View>
               ) : (
-                <Button title="Kirim Pesan" onPress={handleSend} 
+                <Button
+                  title="📨  Kirim Pesan"
+                  color="#7c3aed"
+                  onPress={handleSend}
                 />
               )}
             </View>
-          </ScrollView>
+          )}
 
-          {/* MODAL POPUP DILETAKKAN DI LUAR SCROLLVIEW */}
-      <Modal 
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      {/* MODAL DETAIL */}
+      <Modal
         visible={modalVisible}
         animationType="slide"
         transparent
@@ -329,17 +375,16 @@ const TimelineCard = ({item, onPress}) => (
               <>
                 <Text style={styles.modalTitle}>{selectedItem.role}</Text>
                 <Text style={styles.modalCompany}>{selectedItem.company}</Text>
-                <Text style={styles.modalPeriod}>📅 {selectedItem.period}</Text>
+                <Text style={styles.modalPeriod}>📅  {selectedItem.period}</Text>
                 <View style={styles.modalDivider} />
                 <Text style={styles.modalDesc}>{selectedItem.desc}</Text>
               </>
             )}
-
             <TouchableOpacity
               style={styles.modalCloseBtn}
               onPress={() => setModalVisible(false)}
             >
-              <Text style={styles.modalCloseBtnText}>✕ Tutup</Text>
+              <Text style={styles.modalCloseBtnText}>✕  Tutup</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -401,9 +446,38 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#16213e',
+    padding: 6,
+    marginHorizontal: 16,
+    marginTop: 12,
+    marginBottom: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.cardBorder,
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  activeTabButton: {
+    backgroundColor: COLORS.accent,
+  },
+  tabText: {
+    color: COLORS.textMuted,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  activeTabText: {
+    color: COLORS.white,
+    fontWeight: '700',
+  },
   profileSection: {
     alignItems: 'center',
-    paddingVertical: 32,
+    paddingVertical: 24,
     paddingHorizontal: 20,
     backgroundColor: COLORS.card,
     marginBottom: 16,
@@ -418,7 +492,7 @@ const styles = StyleSheet.create({
     borderRadius: 55,
     borderWidth: 3,
     borderColor: COLORS.accent,
-    marginBottom: 8,
+    marginBottom: 12,
   },
   badge: {
     backgroundColor: '#052e16',
@@ -511,6 +585,7 @@ const styles = StyleSheet.create({
   },
   sectionBox: {
     marginHorizontal: 16,
+    marginTop: 8,
     marginBottom: 16,
     backgroundColor: COLORS.card,
     borderRadius: 16,
@@ -642,11 +717,3 @@ const styles = StyleSheet.create({
   },
   modalCloseBtnText: { color: COLORS.white, fontWeight: '700', fontSize: 14 },
 });
-
-
-        
-  
-
-
-                                          
-
