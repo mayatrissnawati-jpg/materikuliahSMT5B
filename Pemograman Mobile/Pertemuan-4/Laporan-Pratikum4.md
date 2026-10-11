@@ -42,4 +42,4 @@ Mahasiswa mampu :
 
 ### Langkah 2: Konfigurasi Drawer di App.js ###
 
-![alt text](iPhone-14-PRO-localhost-fg7eojvidxk755.gif)
+![alt text](iPhone-14-PRO-localhost-t--quwa0ekpjf9.gif)
